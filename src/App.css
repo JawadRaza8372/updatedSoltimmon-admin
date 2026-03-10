@@ -1,0 +1,394 @@
+@font-face {
+	font-family: "WorkSans";
+	src: url("/fonts/WorkSans-Thin.ttf") format("truetype");
+	font-weight: 100;
+	font-style: normal;
+}
+@font-face {
+	font-family: "WorkSans";
+	src: url("/fonts/WorkSans-ExtraLight.ttf") format("truetype");
+	font-weight: 200;
+	font-style: normal;
+}
+@font-face {
+	font-family: "WorkSans";
+	src: url("/fonts/WorkSans-Light.ttf") format("truetype");
+	font-weight: 300;
+	font-style: normal;
+}
+
+@font-face {
+	font-family: "WorkSans";
+	src: url("/fonts/WorkSans-Regular.ttf") format("truetype");
+	font-weight: 400;
+	font-style: normal;
+}
+
+@font-face {
+	font-family: "WorkSans";
+	src: url("/fonts/WorkSans-Medium.ttf") format("truetype");
+	font-weight: 500;
+	font-style: normal;
+}
+
+@font-face {
+	font-family: "WorkSans";
+	src: url("/fonts/WorkSans-SemiBold.ttf") format("truetype");
+	font-weight: 600;
+	font-style: normal;
+}
+
+@font-face {
+	font-family: "WorkSans";
+	src: url("/fonts/WorkSans-Bold.ttf") format("truetype");
+	font-weight: 700;
+	font-style: normal;
+}
+
+@font-face {
+	font-family: "WorkSans";
+	src: url("/fonts/WorkSans-ExtraBold.ttf") format("truetype");
+	font-weight: 800;
+	font-style: normal;
+}
+
+@font-face {
+	font-family: "WorkSans";
+	src: url("/fonts/WorkSans-ExtraBold.ttf") format("truetype");
+	font-weight: 900;
+	font-style: normal;
+}
+* {
+	font-family: "WorkSans" !important;
+}
+:root {
+	color-scheme: light only;
+}
+html {
+	background-color: #ffffff !important;
+}
+body.mapBg {
+	width: 100%;
+	height: 100vh !important;
+	background: radial-gradient(
+		circle at bottom left,
+		#ffffff 0%,
+		#dbeeff 50%,
+		#c2e0ff 100%
+	) !important;
+	touch-action: none !important;
+	overflow: hidden;
+	overscroll-behavior: none !important;
+	margin: 0 !important;
+	padding: 0 !important;
+	color-scheme: light only;
+}
+body.mapBg #root {
+	width: 100%;
+	height: 100%;
+	color-scheme: light only;
+	margin: 0 !important;
+	padding: 0 !important;
+}
+
+.loadingConatiner {
+	width: 100%;
+	height: 100vh;
+	overflow: hidden;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	position: absolute;
+	top: 0px;
+	left: 0px;
+	right: 0px;
+	z-index: 999999999999999999;
+	background: radial-gradient(
+		circle at bottom left,
+		#ffffff 10%,
+		#dbeeff 50%,
+		#c2e0ff 100%
+	) !important;
+}
+.loadingConatiner img {
+	width: 100%;
+	object-fit: contain;
+	height: 30px;
+}
+.map-container-main {
+	width: 100%;
+	height: 85vh;
+	position: relative;
+	overflow: hidden;
+	border-radius: 40px;
+}
+#map-container {
+	width: 100%;
+	height: 100%;
+	margin: 0px auto;
+	filter: brightness(100%);
+	touch-action: none !important;
+}
+#map-spot-container {
+	width: 100%;
+	height: 100%;
+}
+.mapboxgl-control-container {
+	opacity: 0;
+	overflow: hidden;
+	display: none;
+}
+.datepicker-wrapper-custom {
+	position: relative;
+	width: 50px;
+	height: 50px;
+	border-radius: 50%;
+	background-color: #ffffff;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	cursor: pointer;
+}
+
+.datepicker-wrapper-custom input.datepicker {
+	position: absolute;
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 100%;
+	opacity: 0; /* hide the text input but keep it functional */
+	cursor: pointer;
+}
+
+.calendar-icon {
+	width: 20px;
+	height: 20px;
+	object-fit: contain;
+}
+
+/* The slider itself */
+.slider {
+	width: 90% !important;
+	height: 5px;
+	border-radius: 5px;
+	background: black;
+	outline: none;
+	opacity: 1;
+	-webkit-transition: 0.2s;
+	transition: opacity 0.2s;
+	display: inline-block !important ;
+	margin-left: 10px;
+	margin-right: 10px;
+}
+input[type="range"].slider::-webkit-slider-thumb {
+	-webkit-appearance: none !important;
+	height: 20px;
+	width: 20px;
+	border-radius: 50%;
+	background: white !important;
+	box-shadow: 0 0 5px rgba(0, 0, 0, 0.3) !important; /* soft shadow */
+	cursor: pointer;
+	transition: all 0.2s ease;
+}
+
+input[type="range"].slider::-moz-range-thumb {
+	height: 20px;
+	width: 20px;
+	border-radius: 50%;
+	background: white !important;
+	box-shadow: 0 0 5px rgba(0, 0, 0, 0.3) !important;
+	cursor: pointer;
+}
+
+input[type="range"].slider::-ms-thumb {
+	height: 20px;
+	width: 20px;
+	border-radius: 50%;
+	background: white !important;
+	box-shadow: 0 0 5px rgba(0, 0, 0, 0.3) !important;
+	cursor: pointer;
+}
+.mapboxgl-popup {
+	width: 92% !important;
+	max-width: 480px !important;
+	overflow-y: hidden !important;
+}
+.mapboxgl-popup-content {
+	height: fit-content !important;
+	border-radius: 16px !important;
+	padding: 15px 12px 12px 12px !important;
+}
+.mapboxgl-popup-content .custom-popup {
+	width: auto;
+	display: flex;
+	align-items: flex-start;
+	justify-content: flex-start;
+	flex-direction: row;
+	padding: 18px 15px 15px 15px;
+	gap: 10px;
+}
+.mapboxgl-popup-content .custom-popup .imagContainer {
+	width: 26px;
+	height: 26px;
+	display: flex;
+	align-items: center;
+	justify-content: flex-start;
+	flex-direction: column;
+}
+.mapboxgl-popup-content .custom-popup .imagContainer img {
+	width: 100%;
+	height: 100%;
+	object-fit: contain;
+}
+.mapboxgl-popup-content .custom-popup .textContainer {
+	width: 100%;
+	display: flex;
+	flex-direction: column;
+	font-family: sans-serif;
+}
+.mapboxgl-popup-content .custom-popup .textContainer .body {
+	font-size: 14px;
+	font-weight: 600;
+	color: black;
+	line-height: 26px;
+}
+.mapboxgl-popup-content .custom-popup .textContainer .body2 {
+	font-size: 12px;
+	font-weight: 400;
+	color: black;
+}
+.mapboxgl-popup-content .custom-popup .textContainer .footer {
+	width: 100%;
+	display: flex;
+	flex-direction: row;
+	justify-content: flex-end;
+	margin-top: 7px;
+}
+.mapboxgl-popup-content .custom-popup .textContainer .learn-more {
+	font-size: 12px;
+	color: black !important;
+	font-weight: 700;
+	text-decoration: none !important;
+}
+.mapboxgl-popup-content .custom-popup .textContainer .learn-more:hover {
+	text-decoration: underline;
+}
+.mapboxgl-popup-content .mapboxgl-popup-close-button {
+	opacity: 0;
+	display: none;
+}
+.payment-container {
+	width: 90%;
+	max-width: 450px;
+	margin: 0px auto;
+	padding: 20px 20px 50px 20px;
+	display: flex;
+	flex-direction: column;
+	gap: 25px;
+	overflow-y: auto;
+	overflow-x: hidden;
+	height: 100%;
+}
+.payment-container .logo {
+	width: 100%;
+	object-fit: contain;
+	height: 210px;
+}
+.payment-container .textContainer {
+	width: 100%;
+	display: flex;
+	flex-direction: column;
+	gap: 16px;
+}
+.payment-container .textContainer h4 {
+	font-size: 32px;
+	font-weight: 500;
+	color: #000000;
+	letter-spacing: 1;
+	line-height: 40px;
+	margin: 0px !important;
+}
+.payment-container .textContainer p {
+	font-size: 18px;
+	line-height: 22px;
+	font-weight: 400;
+	color: #000000;
+	margin: 0px !important;
+	white-space: pre-line;
+}
+.payment-container .inputMainContainer {
+	width: 100%;
+	height: auto;
+	display: flex;
+	flex-direction: column;
+	gap: 10px;
+	margin-bottom: 50px;
+}
+.payment-container .inputMainContainer label {
+	font-size: 16px;
+	font-weight: 600;
+	color: #444b51;
+}
+.payment-container .inputMainContainer input {
+	width: auto;
+	background-color: #ffffff;
+	border-radius: 10px;
+	border: 0px !important;
+	outline: none !important;
+	height: 50px;
+	padding-left: 15px;
+	font-size: 16px;
+	font-weight: 500;
+	color: #000000;
+	padding-right: 15px;
+}
+.payment-container .inputMainContainer .payButton {
+	width: 100%;
+	height: 50px;
+	border-radius: 20px;
+	background-color: #589ff8;
+	border: 0px !important;
+	margin-top: 20px;
+	font-size: 18px;
+	font-weight: 700;
+	text-transform: capitalize;
+	color: white;
+	max-width: 250px;
+	margin-left: auto;
+	margin-right: auto;
+}
+.refreshButton {
+	width: 100%;
+	height: 50px;
+	border-radius: 20px;
+	background-color: #589ff8;
+	border: 0px !important;
+	margin-top: 20px;
+	font-size: 18px;
+	font-weight: 700;
+	text-transform: capitalize;
+	color: white;
+	max-width: 250px;
+	margin-left: auto;
+	margin-right: auto;
+	margin-bottom: 50px;
+}
+.NotFoundContainer {
+	width: 100%;
+	height: 100vh;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	flex-direction: column;
+	color: #444b51;
+	opacity: 0.7;
+	font-size: 4rem;
+	text-align: center;
+	font-weight: 600;
+}
+.map-spots-container-main {
+	width: 100%;
+	height: 100vh;
+	overflow: hidden;
+}

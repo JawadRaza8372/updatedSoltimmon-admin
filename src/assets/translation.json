@@ -1,0 +1,34 @@
+{
+	"en": {
+		"donationDesc": "The sun is for everyone, and so is our app!\n\nTo keep running, we rely completely on ads and donations. Therefore, we need your help!",
+		"donationTitle": "More sunshine for everyone!",
+		"continue": "Continue",
+		"enterAmountToDobate": "Enter amount to donate (USD)",
+		"paymentSuccess": "Payment Successfull",
+		"paymentFailed": "Payment Failed",
+		"you": "You",
+		"youCurrentLocation": "Your current location",
+		"learnMore": "Learn More",
+		"openingHours": "Opening Hours",
+		"sunHours": "Sun Hours",
+		"cancel": "Cancel",
+		"warning": "Warning",
+		"broswerIncompatible": "Payments are not supported in this browser. Please use Chrome or Safari to complete your payment."
+	},
+	"sw": {
+		"donationDesc": "Solen är för alla, och det är vår app också!\n\nFör att kunna fortsätta förlitar vi oss helt på annonser och donationer. Därför behöver vi din hjälp!",
+		"donationTitle": "Mer soltid för alla!",
+		"continue": "Fortsätt",
+		"enterAmountToDobate": "Ange belopp att donera (USD)",
+		"paymentSuccess": "Betalningen lyckades",
+		"paymentFailed": "Betalningen misslyckades",
+		"you": "Du",
+		"youCurrentLocation": "Din nuvarande plats",
+		"learnMore": "Läs mer",
+		"openingHours": "Öppettider",
+		"sunHours": "Sön",
+		"cancel": "Avbryt",
+		"warning": "Varning",
+		"broswerIncompatible": "Betalningar stöds inte i denna webbläsare. Vänligen använd Chrome eller Safari för att slutföra din betalning."
+	}
+}
