@@ -9,12 +9,15 @@ import { addSpotFirebaseFn, getSpotFirebaseFn } from "../firebase/realtimeFn";
 import { useDispatch } from "react-redux";
 import { setSpots } from "../store/reducer";
 import { uploadImageFun } from "../firebase/firebaseInit";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import LocationInput from "@components/LocationInput";
 import AddSpotForm from "@components/AddSpotForm";
 const AddSpot = () => {
 	const dispatch = useDispatch();
-
+	const [csvSummary, setCsvSummary] = useState(null);
+	const [validRows, setValidRows] = useState([]);
+	const [invalidRows, setInvalidRows] = useState([]);
+	const fileInputRef = useRef(null);
 	const [formData, setformData] = useState({
 		name: "",
 		address: "",
@@ -231,116 +234,131 @@ const AddSpot = () => {
 		Papa.parse(file, {
 			header: true,
 			skipEmptyLines: true,
-			complete: async (results) => {
-				try {
-					const rows = results.data;
+			complete: (results) => {
+				const rows = results.data;
+				const invalid = [];
+				const valid = [];
 
-					for (const row of rows) {
-						const times = SunCalc.getTimes(
-							new Date(),
-							Number(row.lat),
-							Number(row.lng),
-						);
+				const openingHoursRegex =
+					/^\s*(?:(0|24|\d{1,2}(:[0-5]\d)?))\s*-\s*(0|24|\d{1,2}(:[0-5]\d)?)\s*$|^\s*(\d{1,2}(:[0-5]\d)?(am|pm))\s*-\s*(\d{1,2}(:[0-5]\d)?(am|pm))\s*$/i;
 
-						const sunTimes = {
-							sunRise: formatDateTime(times.sunriseEnd),
-							sunSet: formatDateTime(times.sunsetStart),
-						};
-						const openingHoursRegex =
-							/^\s*(?:(0|24|\d{1,2}(:[0-5]\d)?))\s*-\s*(0|24|\d{1,2}(:[0-5]\d)?)\s*$|^\s*(\d{1,2}(:[0-5]\d)?(am|pm))\s*-\s*(\d{1,2}(:[0-5]\d)?(am|pm))\s*$/i;
+				const urlRegex =
+					/^(https?:\/\/)?([\w\-]+\.)+[\w\-]+(\/[\w\-._~:/?#[\]@!$&'()*+,;=]*)?$/i;
 
-						const formattedOpeningHours = formatOpeningHoursInput(
-							row?.openingHours,
-						);
-						const urlRegex =
-							/^(https?:\/\/)?([\w\-]+\.)+[\w\-]+(\/[\w\-._~:/?#[\]@!$&'()*+,;=]*)?$/i;
-						const isValidOpeningHours = openingHoursRegex.test(
-							`${row?.openingHours}`?.toLowerCase(),
-						);
-						const isValidExternalLink = urlRegex.test(
-							`${row?.externalWebsite}`?.toLowerCase(),
-						);
-						if (row?.name?.length < 3) {
-							toast.error(
-								"Please enter a spot name with at least 3 characters.",
-							);
-							return;
-						}
-						if (
-							row?.address?.length < 3 ||
-							(row?.coords?.lng === 0 &&
-								row?.coords?.lng === 0 &&
-								row?.city?.length <= 0)
-						) {
-							toast.error("Please select a valid address.");
-							return;
-						}
-						if (row?.discript?.length < 15) {
-							toast.error(
-								"Please provide a detailed description with at least 15 characters.",
-							);
-							return;
-						}
-						if (isValidOpeningHours !== true) {
-							toast.error(
-								"Please enter valid opening hours. Allowed formats include: 9am-9pm, 09:00-21:30 and 9-21.",
-							);
-							return;
-						}
-						if (row?.phoneNumbeer?.length < 7) {
-							toast.error("Please enter a valid phone number.");
-							return;
-						}
+				rows.forEach((row, index) => {
+					let error = "";
 
-						if (row?.externalWebsite?.length > 0 && !isValidExternalLink) {
-							toast.error("Please enter valid external website url.");
-							return;
-						}
-						if (row?.images?.length <= 0) {
-							toast.error("Please upload at least one image for this spot.");
-							return;
-						}
-						await addSpotFirebaseFn({
-							additionalImages: [
-								"https://firebasestorage.googleapis.com/v0/b/solspringan-v1.firebasestorage.app/o/placeholder%2Ficon.png?alt=media&token=98d4aec5-ec1e-4274-b7ff-19f3dfcb45a3",
-							],
-							name: row?.name ?? "",
-							address: row?.address ?? "",
-							description: row?.description ?? "",
-							lat: Number(row?.lat),
-							lng: Number(row?.lng),
-							city: row?.city,
-							openingHours: formattedOpeningHours,
-							phoneNumber: row?.phoneNumber,
-							externalWebsite: row?.externalWebsite ?? "",
-							internalNote: row?.internalNote ?? "",
-							status: row?.status ?? "pending",
-							source: "import",
-							createdAt: Date.now(),
-							sunHours: `${sunTimes.sunRise} - ${sunTimes.sunSet}`,
-						});
+					const isValidOpeningHours = openingHoursRegex.test(
+						`${row?.openingHours}`?.toLowerCase(),
+					);
+
+					const isValidExternalLink = urlRegex.test(
+						`${row?.externalWebsite}`?.toLowerCase(),
+					);
+
+					if (row?.name?.length < 3) {
+						error = "Name must be at least 3 characters";
+					} else if (
+						row?.address?.length < 3 ||
+						(row?.lat === 0 && row?.lng === 0 && !row?.city)
+					) {
+						error = "Invalid address";
+					} else if (row?.description?.length < 15) {
+						error = "Description must be at least 15 characters";
+					} else if (!isValidOpeningHours) {
+						error = "Invalid opening hours format";
+					} else if (row?.phoneNumber?.length < 7) {
+						error = "Invalid phone number";
+					} else if (row?.externalWebsite?.length > 0 && !isValidExternalLink) {
+						error = "Invalid website URL";
 					}
-					const resultSpots = await getSpotFirebaseFn();
-					dispatch(setSpots({ spots: resultSpots }));
-					toast.success("CSV imported successfully");
-				} catch (error) {
-					toast.error(error.message);
-				}
+
+					if (error) {
+						invalid.push({
+							row: index + 1,
+							name: row?.name,
+							reason: error,
+						});
+					} else {
+						valid.push(row);
+					}
+				});
+
+				setValidRows(valid);
+				setInvalidRows(invalid);
+
+				setCsvSummary({
+					total: rows.length,
+					valid: valid.length,
+					invalid: invalid.length,
+				});
 			},
 		});
+	};
+	const importValidRows = async () => {
+		try {
+			for (const row of validRows) {
+				const times = SunCalc.getTimes(
+					new Date(),
+					Number(row.lat),
+					Number(row.lng),
+				);
+
+				const sunTimes = {
+					sunRise: formatDateTime(times.sunriseEnd),
+					sunSet: formatDateTime(times.sunsetStart),
+				};
+
+				const formattedOpeningHours = formatOpeningHoursInput(
+					row?.openingHours,
+				);
+
+				await addSpotFirebaseFn({
+					additionalImages: [
+						"https://firebasestorage.googleapis.com/v0/b/solspringan-v1.firebasestorage.app/o/placeholder%2Ficon.png?alt=media",
+					],
+					name: row?.name ?? "",
+					address: row?.address ?? "",
+					description: row?.description ?? "",
+					lat: Number(row?.lat),
+					lng: Number(row?.lng),
+					city: row?.city,
+					openingHours: formattedOpeningHours,
+					phoneNumber: row?.phoneNumber,
+					externalWebsite: row?.externalWebsite ?? "",
+					internalNote: row?.internalNote ?? "",
+					status: row?.status ?? "pending",
+					source: "import",
+					createdAt: Date.now(),
+					sunHours: `${sunTimes.sunRise} - ${sunTimes.sunSet}`,
+				});
+			}
+
+			toast.success(`${validRows.length} spots imported`);
+			setCsvSummary(null);
+		} catch (error) {
+			toast.error(error.message);
+		}
 	};
 	return (
 		<>
 			<PageHeader title="Add Spot" />
 			<Spring className="card flex-1  mx-auto w-full xl:py-10">
-				<input
-					type="file"
-					accept=".csv"
-					onChange={handleCsvImport}
-				/>
 				{(formData?.coords?.lat === 0 && formData?.coords?.lng === 0) ||
 				formData?.coords?.address?.length > 0 ? (
-					<LocationInput onSelectedValueFun={onIncomingDataFun} />
+					<LocationInput
+						onSelectedValueFun={onIncomingDataFun}
+						handleCsvImport={handleCsvImport}
+						csvSummary={csvSummary}
+						importValidRows={importValidRows}
+						invalidRows={invalidRows}
+						resetFunction={() => {
+							setCsvSummary(null);
+							setInvalidRows([]);
+							setValidRows([]);
+						}}
+						validRows={validRows}
+					/>
 				) : (
 					<AddSpotForm
 						formData={formData}

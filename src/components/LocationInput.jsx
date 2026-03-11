@@ -1,11 +1,21 @@
 import classNames from "classnames";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import PlacesAutocomplete, {
 	geocodeByAddress,
 } from "react-places-autocomplete";
 import { toast } from "react-toastify";
-function LocationInput({ onSelectedValueFun }) {
+function LocationInput({
+	onSelectedValueFun,
+	handleCsvImport,
+	csvSummary,
+	invalidRows,
+	validRows,
+	resetFunction,
+	importValidRows,
+}) {
 	const [address, setAddress] = useState("");
+	const fileInputRef = useRef(null);
+
 	const [selectedData, setselectedData] = useState({
 		address: "",
 		description: "",
@@ -196,77 +206,151 @@ function LocationInput({ onSelectedValueFun }) {
 		onSelectedValueFun?.(selectedData);
 	};
 	return (
-		<div className="flex w-full max-w-[650px] mx-auto flex-col">
-			<div className="field-wrapper">
-				<label
-					className="field-label"
-					htmlFor="productName">
-					Spot Address (at least 10 letters)
-				</label>
-				<PlacesAutocomplete
-					value={address}
-					onChange={handleChangeAddress}
-					onSelect={handleSelectAddress}>
-					{({
-						getInputProps,
-						suggestions,
-						getSuggestionItemProps,
-						loading,
-					}) => (
-						<div>
-							<div
-								className={`flex flex-row items-center gap-2 !px-[15px] justify-start ${classNames("field-input")}`}>
-								<input
-									{...getInputProps({
-										placeholder: "Search Places ...",
-										className: "h-full !px-0 flex-1 !outline-none",
-									})}
-								/>
-								{loading && (
-									<div className="w-[20px] h-[30px] flex flex-col items-center justify-center text-accent">
-										<img
-											className="w-full h-full object-contain"
-											src="loading2.gif"
-											alt="loading"
-										/>
-									</div>
-								)}
-							</div>
+		<div className="w-full max-w-[650px] gap-8 mx-auto flex flex-col">
+			<p className="text-xl font-bold text-gray">
+				You can add spot by uploading the csv/excel file or by entering the
+				location also
+			</p>
+			<div className="flex w-full gap-4 flex-col">
+				{!csvSummary && (
+					<div>
+						<input
+							type="file"
+							accept=".csv"
+							ref={fileInputRef}
+							onChange={handleCsvImport}
+							style={{ display: "none" }}
+						/>
+						<button
+							onClick={() => fileInputRef.current.click()}
+							className="px-8 py-2 bg-blue-500 text-white rounded-full">
+							Upload CSV
+						</button>
+					</div>
+				)}
+				{csvSummary && (
+					<div className="flex w-full flex-col">
+						<h3 className="font-semibold mb-2">CSV Import Summary</h3>
 
-							{suggestions?.length > 0 && (
-								<div className="mt-2 w-full rounded-xl border border-gray-200 bg-white shadow-lg">
-									{suggestions?.map((suggestion, index) => {
-										const active = suggestion.active;
-										return (
-											<div
-												key={suggestion.placeId + index}
-												{...getSuggestionItemProps(suggestion)}
-												className={`px-4 py-3 text-sm cursor-pointer transition 
+						<p className="font-bold text-black">
+							Total Rows: {csvSummary.total}
+						</p>
+						<p className="text-green-darker font-bold">
+							Valid Rows: {csvSummary.valid}
+						</p>
+						<p className="text-red font-bold">
+							Invalid Rows: {csvSummary.invalid}
+						</p>
+
+						{invalidRows.length > 0 && (
+							<div className="mt-3 max-h-40 overflow-auto text-sm">
+								{invalidRows.slice(0, 10).map((row) => (
+									<div
+										className="text-red font-medium"
+										key={row.row}>
+										Row {row.row} ({row.name || "Unnamed"}) — {row.reason}
+									</div>
+								))}
+							</div>
+						)}
+
+						<div className="flex gap-3 mt-4">
+							<button
+								onClick={importValidRows}
+								disabled={validRows.length === 0}
+								className="btn btn--primary disabled:opacity-50">
+								Import Valid Rows
+							</button>
+
+							<button
+								onClick={resetFunction}
+								className="btn btn--danger bg-red text-white">
+								Cancel
+							</button>
+						</div>
+					</div>
+				)}
+			</div>
+			{!csvSummary && (
+				<div className="p-4 flex flex-col items-center justify-center text-base text-gray border-2 border-r-0 border-l-0">
+					or
+				</div>
+			)}
+
+			{!csvSummary && (
+				<div className="flex w-full flex-col">
+					<div className="field-wrapper">
+						<label
+							className="field-label"
+							htmlFor="productName">
+							Spot Address (at least 10 letters)
+						</label>
+						<PlacesAutocomplete
+							value={address}
+							onChange={handleChangeAddress}
+							onSelect={handleSelectAddress}>
+							{({
+								getInputProps,
+								suggestions,
+								getSuggestionItemProps,
+								loading,
+							}) => (
+								<div>
+									<div
+										className={`flex flex-row items-center gap-2 !px-[15px] justify-start ${classNames("field-input")}`}>
+										<input
+											{...getInputProps({
+												placeholder: "Search Places ...",
+												className: "h-full !px-0 flex-1 !outline-none",
+											})}
+										/>
+										{loading && (
+											<div className="w-[20px] h-[30px] flex flex-col items-center justify-center text-accent">
+												<img
+													className="w-full h-full object-contain"
+													src="loading2.gif"
+													alt="loading"
+												/>
+											</div>
+										)}
+									</div>
+
+									{suggestions?.length > 0 && (
+										<div className="mt-2 w-full rounded-xl border border-gray-200 bg-white shadow-lg">
+											{suggestions?.map((suggestion, index) => {
+												const active = suggestion.active;
+												return (
+													<div
+														key={suggestion.placeId + index}
+														{...getSuggestionItemProps(suggestion)}
+														className={`px-4 py-3 text-sm cursor-pointer transition 
                         ${
 													active
 														? "bg-blue-50 text-blue-700"
 														: "hover:bg-gray-100"
 												}`}>
-												<span>{suggestion.description}</span>
-											</div>
-										);
-									})}
+														<span>{suggestion.description}</span>
+													</div>
+												);
+											})}
+										</div>
+									)}
 								</div>
 							)}
-						</div>
-					)}
-				</PlacesAutocomplete>
-			</div>
-			<button
-				disabled={
-					selectedData?.name?.length <= 0 ||
-					selectedData?.openingHours?.length <= 0
-				}
-				onClick={onSubmitFun}
-				type="button"
-				className="btn mt-5 btn--primary max-w-[150px]">
-				Next
-			</button>
+						</PlacesAutocomplete>
+					</div>
+					<button
+						disabled={
+							selectedData?.name?.length <= 0 ||
+							selectedData?.openingHours?.length <= 0
+						}
+						onClick={onSubmitFun}
+						type="button"
+						className="btn mt-5 btn--primary max-w-[150px]">
+						Next
+					</button>
+				</div>
+			)}
 		</div>
 	);
 }

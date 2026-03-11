@@ -1,4 +1,4 @@
-import { ref, update, remove, get, child, push, set } from "firebase/database";
+import { ref, update, remove, get, child, push } from "firebase/database";
 import { db } from "./firebaseInit";
 export const fetchLocationSpots = async () => {
 	const starCountRef = ref(db, "markersData/");

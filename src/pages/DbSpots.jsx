@@ -12,7 +12,6 @@ import Pagination from "@ui/Pagination";
 import { useSelector } from "react-redux";
 import SpotMobileItem from "@components/SpotMobileItem";
 import classNames from "classnames";
-import { CSVLink } from "react-csv";
 
 const DbSpots = () => {
 	const options = [
@@ -55,69 +54,11 @@ const DbSpots = () => {
 			setActiveCollapse(id);
 		}
 	};
-	const dataHeader = [
-		[
-			`name`,
-			`address`,
-			`description`,
-			`lat`,
-			`lng`,
-			`city`,
-			"status",
-			"internalNote",
-			"externalWebsite",
-			"phoneNumber",
-			"openingHours",
-		],
-	];
 
-	const dataRows = apotsByCategory.map((tpl) => [
-		`${tpl?.name ?? ""}`,
-		`${tpl?.address ?? ""}`,
-		`${tpl?.description ?? ""}`,
-		`${tpl?.lat ?? ""}`,
-		`${tpl?.lng ?? 0}`,
-		`${tpl?.city ?? ""}`,
-		`${tpl?.status ?? ""}`,
-		`${tpl?.internalNote ?? ""}`,
-		`${tpl?.externalWebsite ?? ""}`,
-		`${tpl?.phoneNumber ?? ""}`,
-		`${
-			tpl?.openingHours
-				? tpl?.openingHours
-						?.toLowerCase()
-						.replace(/\u202F|\u00A0/g, " ")
-						.replace(/–|—/g, "-")
-				: ""
-		}`,
-	]);
-
-	const clientsData = [
-		...dataHeader,
-		...(dataRows?.length > 0 ? dataRows : []),
-	];
 	return (
 		<>
 			<PageHeader title="Spots" />
 			<div className="grid grid-cols-1 gap-y-4 gap-x-4 sm:grid-cols-3 mb-5 md:mb-[30px]">
-				<CSVLink
-					className="w-full max-w-[45%]"
-					filename={`QuickWriteAI-Verified-Privacy-${Date.now()}.csv`}
-					data={clientsData}>
-					<button
-						className="flex items-center flex-row justify-center my-2 w-full space-x-1 whitespace-nowrap transition-colors cursor-pointer"
-						style={{
-							color: "black",
-							fontSize: "14px",
-							fontWeight: "400",
-							border: "1px solid",
-							borderColor: "black",
-							borderRadius: "6px",
-							padding: "8px 16px",
-						}}>
-						export
-					</button>
-				</CSVLink>
 				<div className="field-wrapper">
 					<label
 						className="field-label"
