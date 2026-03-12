@@ -21,19 +21,17 @@ export const useLoadingWithRefreash = () => {
 	const [isLoading, setisLoading] = useState(true);
 	const dispatch = useDispatch();
 	const isCalled = useRef(false); // Prevent multiple calls
+	const fetchAllMarkers = useCallback(async () => {
+		const result = await fetchLocationSpots();
+		const highlightedResults = await fetchAdminHighlightedSpots();
+		const filteredHighlightedSpots = result?.filter((dat) =>
+			highlightedResults?.includes(dat?.id),
+		);
+		dispatch(setClientSpots({ clientSpots: result }));
+		dispatch(setClientPaidSpots({ clientPaidSpots: filteredHighlightedSpots }));
+	}, [dispatch]);
 	const checklogin = useCallback(async () => {
 		try {
-			const fetchAllMarkers = async () => {
-				const result = await fetchLocationSpots();
-				const highlightedResults = await fetchAdminHighlightedSpots();
-				const filteredHighlightedSpots = result?.filter((dat) =>
-					highlightedResults?.includes(dat?.id),
-				);
-				dispatch(setClientSpots({ clientSpots: result }));
-				dispatch(
-					setClientPaidSpots({ clientPaidSpots: filteredHighlightedSpots }),
-				);
-			};
 			if (isCalled.current) return; // Prevent duplicate execution
 			isCalled.current = true;
 			const result = await fetchUserId();
@@ -66,15 +64,17 @@ export const useLoadingWithRefreash = () => {
 						toast.error(err);
 					});
 				await fetchAllMarkers();
+
 				setisLoading(false);
 			} else {
+				await fetchAllMarkers();
 				setisLoading(false);
 			}
 		} catch (error) {
 			toast.error(error);
 			setisLoading(false);
 		}
-	}, [dispatch]);
+	}, [dispatch, fetchAllMarkers]);
 
 	useEffect(() => {
 		checklogin();

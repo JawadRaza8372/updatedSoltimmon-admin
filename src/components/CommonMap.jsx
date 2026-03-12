@@ -264,7 +264,6 @@ function CommonMap({ locations }) {
 			map.off("moveend", calculateTimes);
 		};
 	}, [selectedDate]);
-
 	return (
 		<>
 			<div className="map-container-main">
