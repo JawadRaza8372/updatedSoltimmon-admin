@@ -32,6 +32,7 @@ const App = () => {
 		path !== "/login" &&
 		path !== "/404" &&
 		path !== "/client" &&
+		path !== "/client/" &&
 		path !== "/client/top-spots" &&
 		path !== "/client/donation";
 
@@ -41,6 +42,7 @@ const App = () => {
 	useEffect(() => {
 		if (
 			path === "/client" ||
+			path === "/client/" ||
 			path === "/client/top-spots" ||
 			path === "/client/donation"
 		) {
@@ -62,6 +64,7 @@ const App = () => {
 
 		if (
 			path !== "/client" &&
+			path !== "/client/" &&
 			path !== "/client/top-spots" &&
 			path !== "/client/donation"
 		) {
