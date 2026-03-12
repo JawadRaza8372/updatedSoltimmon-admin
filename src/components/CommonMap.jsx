@@ -1,4 +1,4 @@
-import { useRef, useEffect, useState } from "react";
+import { useRef, useEffect, useState, useCallback } from "react";
 import mapboxgl from "mapbox-gl";
 import "mapbox-gl/dist/mapbox-gl.css";
 import SunCalc from "suncalc";
@@ -20,12 +20,6 @@ function CommonMap({ locations }) {
 	const [sunTimes, setsunTimes] = useState({ sunSet: "", sunRise: "" });
 	const currentLang = searchParams.get("lang") ?? "en";
 	const textStrings = currentLang === "en" ? jsonLang.en : jsonLang.sw;
-	const currentLat = searchParams.get("lat") ?? 0;
-	const currentLng = searchParams.get("lng") ?? 0;
-	const centerPosition =
-		currentLat !== 0 && currentLng !== 0
-			? [currentLng, currentLat]
-			: [-74.0059, 40.7064];
 	const mapRef = useRef();
 	const markersRef = useRef([]);
 	const mapContainerRef = useRef();
@@ -78,51 +72,56 @@ function CommonMap({ locations }) {
 		`${String(date.getHours()).padStart(2, "0")}:${String(
 			date.getMinutes(),
 		).padStart(2, "0")}`;
-	const updateSun = (map, sec) => {
-		if (!map.isStyleLoaded()) return;
+	const updateSun = useCallback(
+		async (map) => {
+			const date = new Date(selectedDate);
+			date.setHours(Math.floor(seconds / 3600));
+			date.setMinutes(Math.floor(seconds / 60) % 60);
+			const center = mapRef.current.getCenter();
+			const sun = SunCalc.getPosition(date, center.lat, center.lng);
+			const times = SunCalc.getTimes(date, center.lat, center.lng);
 
-		const date = new Date();
-		date.setHours(Math.floor(sec / 3600));
-		date.setMinutes(Math.floor(sec / 60) % 60);
+			setsunTimes({
+				sunRise: formatDateTime(times.sunriseEnd),
+				sunSet: formatDateTime(times.sunsetStart),
+			});
 
-		const center = map.getCenter();
-		const sun = SunCalc.getPosition(date, center.lat, center.lng);
+			const altitude = sun.altitude;
 
-		const altitude = sun.altitude;
+			let brightness = 100;
 
-		let brightness = 100;
+			if (altitude <= 0) {
+				brightness = 50;
+			} else if (altitude < 0.2) {
+				brightness = altitude * 250 + 50;
+			} else {
+				brightness = 100;
+			}
 
-		if (altitude <= 0) {
-			brightness = 50;
-		} else if (altitude < 0.2) {
-			brightness = altitude * 250 + 50;
-		} else {
-			brightness = 100;
-		}
+			// // 🔥 Apply CSS brightness like your Leaflet code
+			if (mapContainerRef.current) {
+				mapContainerRef.current.style.filter = `brightness(${brightness}%)`;
+			}
 
-		// // 🔥 Apply CSS brightness like your Leaflet code
-		if (mapContainerRef.current) {
-			mapContainerRef.current.style.filter = `brightness(${brightness}%)`;
-		}
-
-		// optional: keep light realistic for buildings
-		const altitudeDeg = (altitude * 180) / Math.PI;
-		const azimuthDeg = (sun.azimuth * 180) / Math.PI;
-		map.setLight({
-			anchor: "map",
-			position: [1.5, 180 + azimuthDeg, 90 - altitudeDeg],
-			intensity: altitude <= 0 ? 0.2 : 0.8,
-			color: altitude <= 0 ? "#999" : "#ffffff",
-		});
-	};
+			// optional: keep light realistic for buildings
+			const altitudeDeg = (altitude * 180) / Math.PI;
+			const azimuthDeg = (sun.azimuth * 180) / Math.PI;
+			map.setLight({
+				anchor: "map",
+				position: [1.5, 180 + azimuthDeg, 90 - altitudeDeg],
+				intensity: altitude <= 0 ? 0.2 : 0.8,
+				color: altitude <= 0 ? "#999" : "#ffffff",
+			});
+		},
+		[selectedDate, seconds],
+	);
 	// eslint-disable-next-line react-hooks/exhaustive-deps
 	useEffect(() => {
 		mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_ACCESS_TOKEN;
-
 		mapRef.current = new mapboxgl.Map({
 			container: mapContainerRef.current,
 			style: "mapbox://styles/mapbox/streets-v11",
-			center: centerPosition,
+			center: [16.7158, 62.8576],
 			antialias: true,
 			maxZoom: 17,
 			minZoom: 11,
@@ -147,15 +146,6 @@ function CommonMap({ locations }) {
 				"road-label",
 			);
 
-			updateSun(mapRef.current, seconds);
-			const center = mapRef.current.getCenter();
-			const formattedDate = new Date(selectedDate);
-			const times = SunCalc.getTimes(formattedDate, center.lat, center.lng);
-
-			setsunTimes({
-				sunRise: formatDateTime(times.sunriseEnd),
-				sunSet: formatDateTime(times.sunsetStart),
-			});
 			mapRef.current.setMinZoom(MIN_ZOOM);
 			mapRef.current.setMaxZoom(MAX_ZOOM);
 
@@ -175,6 +165,10 @@ function CommonMap({ locations }) {
 					mapRef.current.setZoom(MAX_ZOOM);
 				}
 			});
+			updateSun(mapRef.current);
+			mapRef.current.on("moveend", () => {
+				updateSun(mapRef.current);
+			});
 		});
 
 		return () => {
@@ -185,9 +179,9 @@ function CommonMap({ locations }) {
 		const map = mapRef.current;
 		if (!map) return;
 		if (map.isStyleLoaded()) {
-			updateSun(map, seconds);
+			updateSun(map);
 		}
-	}, [seconds]);
+	}, [updateSun]);
 	useEffect(() => {
 		const map = mapRef.current;
 		if (!map) return;
@@ -244,7 +238,7 @@ function CommonMap({ locations }) {
 			});
 			markersRef.current.push(marker);
 		});
-	}, [locations]);
+	}, [locations, textStrings]);
 
 	useEffect(() => {
 		const map = mapRef?.current;
@@ -385,7 +379,10 @@ function CommonMap({ locations }) {
 							flexDirection: "row",
 							gap: "5px",
 						}}>
-						<img src="/sunrise-icon.png" />
+						<img
+							src="/sunrise-icon.png"
+							alt="sun-rise"
+						/>
 						<span
 							htmlFor="sunrisetime"
 							style={{ fontSize: "12px", fontWeight: "normal" }}>
@@ -402,6 +399,7 @@ function CommonMap({ locations }) {
 						}}>
 						<img
 							src="/sunset-icon.png"
+							alt="sun-set"
 							style={{ marginLeft: "5px" }}
 						/>
 						<span
