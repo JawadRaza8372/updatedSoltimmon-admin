@@ -9,7 +9,7 @@ import { addSpotFirebaseFn, getSpotFirebaseFn } from "../firebase/realtimeFn";
 import { useDispatch } from "react-redux";
 import { setSpots } from "../store/reducer";
 import { uploadImageFun } from "../firebase/firebaseInit";
-import { useRef, useState } from "react";
+import { useState } from "react";
 import LocationInput from "@components/LocationInput";
 import AddSpotForm from "@components/AddSpotForm";
 const AddSpot = () => {
@@ -17,7 +17,6 @@ const AddSpot = () => {
 	const [csvSummary, setCsvSummary] = useState(null);
 	const [validRows, setValidRows] = useState([]);
 	const [invalidRows, setInvalidRows] = useState([]);
-	const fileInputRef = useRef(null);
 	const [formData, setformData] = useState({
 		name: "",
 		address: "",
