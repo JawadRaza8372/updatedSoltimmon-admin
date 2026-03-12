@@ -103,7 +103,6 @@ const Banners = () => {
 				imageAd: wholeAdData?.imageAd ?? "",
 				imageExternalLink: wholeAdData?.imageExternalLink ?? "",
 				locationAd: wholeAdData?.locationAd ?? "",
-				locationExternalLink: wholeAdData?.locationExternalLink ?? "",
 				highlightedSpots: wholeAdData?.highlightedSpots ?? [],
 			});
 			await fetchAdBanner();
@@ -124,7 +123,6 @@ const Banners = () => {
 				imageAd: image,
 				imageExternalLink: externalWeb,
 				locationAd: wholeAdData?.locationAd ?? "",
-				locationExternalLink: wholeAdData?.locationExternalLink ?? "",
 				highlightedSpots: wholeAdData?.highlightedSpots ?? [],
 			});
 			await fetchAdBanner();

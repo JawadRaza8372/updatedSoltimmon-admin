@@ -7,8 +7,15 @@ import {
 	setContacts,
 	setSpots,
 	setWholeAdData,
+	setClientPaidSpots,
+	setClientSpots,
 } from "../store/reducer";
-import { getAdImage, getSpotFirebaseFn } from "../firebase/realtimeFn";
+import {
+	fetchAdminHighlightedSpots,
+	fetchLocationSpots,
+	getAdImage,
+	getSpotFirebaseFn,
+} from "../firebase/realtimeFn";
 import { getDataFromFirestore } from "../firebase/firestoreFn";
 export const useLoadingWithRefreash = () => {
 	const [isLoading, setisLoading] = useState(true);
@@ -16,6 +23,17 @@ export const useLoadingWithRefreash = () => {
 	const isCalled = useRef(false); // Prevent multiple calls
 	const checklogin = useCallback(async () => {
 		try {
+			const fetchAllMarkers = async () => {
+				const result = await fetchLocationSpots();
+				const highlightedResults = await fetchAdminHighlightedSpots();
+				const filteredHighlightedSpots = result?.filter((dat) =>
+					highlightedResults?.includes(dat?.id),
+				);
+				dispatch(setClientSpots({ clientSpots: result }));
+				dispatch(
+					setClientPaidSpots({ clientPaidSpots: filteredHighlightedSpots }),
+				);
+			};
 			if (isCalled.current) return; // Prevent duplicate execution
 			isCalled.current = true;
 			const result = await fetchUserId();
@@ -47,6 +65,7 @@ export const useLoadingWithRefreash = () => {
 					.catch((err) => {
 						toast.error(err);
 					});
+				await fetchAllMarkers();
 				setisLoading(false);
 			} else {
 				setisLoading(false);

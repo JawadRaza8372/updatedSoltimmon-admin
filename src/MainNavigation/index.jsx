@@ -30,7 +30,7 @@ const MainNaviagtion = () => {
 	};
 	const { isLoading } = useLoadingWithRefreash();
 	if (isLoading) {
-		return <LoaderModal isOpen={isLoading} />;
+		return <LoaderModal />;
 	}
 	return (
 		<Routes>

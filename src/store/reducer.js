@@ -10,6 +10,8 @@ const theme = createSlice({
 		contacts: [],
 		adImage: "",
 		wholeAdData: null,
+		clientSpots: [],
+		clientPaidSpots: [],
 	},
 	reducers: {
 		isCheckLogin: (state, action) => {
@@ -29,6 +31,12 @@ const theme = createSlice({
 		setContacts: (state, action) => {
 			state.contacts = action.payload.contacts;
 		},
+		setClientSpots: (state, action) => {
+			state.clientSpots = action.payload.clientSpots;
+		},
+		setClientPaidSpots: (state, action) => {
+			state.clientPaidSpots = action.payload.clientPaidSpots;
+		},
 		setWholeAdData: (state, action) => {
 			state.wholeAdData = action.payload.wholeAdData ?? null;
 		},
@@ -46,6 +54,8 @@ export const {
 	setSpotRequests,
 	setSpots,
 	setWholeAdData,
+	setClientPaidSpots,
+	setClientSpots,
 } = theme.actions;
 export default theme.reducer;
 export const storeUserId = async (value) => {

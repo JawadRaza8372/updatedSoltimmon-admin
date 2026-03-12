@@ -1,10 +1,11 @@
+import loadingImg from "@assets/loading2.gif";
 const Loader = () => {
 	return (
 		<div className="flex flex-1 justify-center items-center">
-			<div className="w-[150px] h-[150px] text-accent">
+			<div className="w-[40px] h-[40px] text-accent">
 				<img
 					className="w-full h-full object-contain"
-					src="loading.gif"
+					src={loadingImg}
 					alt="loading"
 				/>
 			</div>

@@ -1,20 +1,9 @@
-import { useEffect, useState } from "react";
-
-import { fetchLocationSpots } from "../firebase/realtimeFn";
 import CommonMap from "./CommonMap";
+import { useSelector } from "react-redux";
 
 function MapWithShadows() {
-	const [locations, setLocations] = useState([]);
-	const [isLoading, setisLoading] = useState(true);
+	const { clientSpots } = useSelector((state) => state?.auth);
 
-	useEffect(() => {
-		const fetchAllMarkers = async () => {
-			const result = await fetchLocationSpots();
-			setLocations(result);
-			setisLoading(false);
-		};
-		fetchAllMarkers();
-	}, []);
 	return (
 		<>
 			<div
@@ -24,15 +13,7 @@ function MapWithShadows() {
 					paddingTop: "20px",
 					overflow: "hidden",
 				}}>
-				{isLoading && (
-					<div className="loadingConatiner">
-						<img
-							src="loading.gif"
-							alt="loading"
-						/>
-					</div>
-				)}
-				<CommonMap locations={locations} />
+				<CommonMap locations={clientSpots} />
 			</div>
 		</>
 	);

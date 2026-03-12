@@ -30,18 +30,12 @@ export const fetchLocationSpots = async () => {
 		return [];
 	}
 };
-export const fetchCurrentAd = async () => {
-	const starCountRef = ref(db, "appAd/");
+export const fetchAdminHighlightedSpots = async () => {
+	const starCountRef = ref(db, "appAd/highlightedSpots");
 	try {
 		const snapshot = await get(starCountRef);
-		const data = snapshot.exists() ? snapshot.val() : {};
-		const isImageAd = data?.addType === "image";
-		const formatData = {
-			image: isImageAd ? data?.imageAd : data?.locationAd,
-			link: isImageAd ? data?.imageExternalLink : data?.locationExternalLink,
-		};
-
-		return { ...formatData };
+		const data = snapshot.exists() ? snapshot.val() : [];
+		return data;
 	} catch (error) {
 		console.error("Error fetching location spots:", error);
 		return {};
