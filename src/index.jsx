@@ -5,8 +5,7 @@ import { BrowserRouter } from "react-router-dom";
 import { ThemeProvider } from "@contexts/themeContext";
 import { Provider } from "react-redux";
 import store from "./store/store";
-import "leaflet/dist/leaflet.css";
-import "osmbuildings/dist/OSMBuildings.js";
+
 const root = ReactDOM.createRoot(document.getElementById("root"));
 root.render(
 	<BrowserRouter>
