@@ -121,7 +121,7 @@ function CommonMap({ locations }) {
 		mapRef.current = new mapboxgl.Map({
 			container: mapContainerRef.current,
 			style: "mapbox://styles/mapbox/streets-v11",
-			center: [16.7158, 62.8576],
+			center: true ? [-74.0059, 40.7064] : [16.7158, 62.8576],
 			antialias: true,
 			maxZoom: 17,
 			minZoom: 11,
