@@ -336,7 +336,7 @@ function CommonMap({ locations }) {
 			<div
 				style={{
 					position: "absolute",
-					top: "calc(85vh + 5px)",
+					top: "calc(83vh)",
 					right: "0px",
 					left: "0px",
 					zIndex: 1000,
@@ -409,23 +409,23 @@ function CommonMap({ locations }) {
 						</span>
 					</div>
 				</div>
-			</div>
-			<div
-				style={{
-					height: "10px",
-					width: "90%",
-					margin: "37px 0px auto auto",
-				}}>
-				<input
-					type="range"
-					min="0"
-					max="86400"
-					value={seconds}
-					onChange={(e) => setSeconds(Number(e.target.value))}
+				<div
 					style={{
+						height: "20px",
 						width: "90%",
-					}}
-				/>
+						margin: "18px 0px auto auto",
+					}}>
+					<input
+						type="range"
+						min="0"
+						max="86400"
+						value={seconds}
+						onChange={(e) => setSeconds(Number(e.target.value))}
+						style={{
+							width: "90%",
+						}}
+					/>
+				</div>
 			</div>
 		</>
 	);

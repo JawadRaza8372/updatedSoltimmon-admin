@@ -10,7 +10,6 @@ function MapWithPaidMarkers() {
 				style={{
 					position: "relative",
 					height: "100vh",
-					paddingTop: "20px",
 					overflow: "hidden",
 				}}>
 				<CommonMap locations={clientPaidSpots} />
