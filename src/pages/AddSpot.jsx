@@ -333,7 +333,8 @@ const AddSpot = () => {
 					sunHours: `${sunTimes.sunRise} - ${sunTimes.sunSet}`,
 				});
 			}
-
+			const resultSpots = await getSpotFirebaseFn();
+			dispatch(setSpots({ spots: resultSpots }));
 			toast.success(`${validRows.length} spots imported`);
 			setCsvSummary(null);
 		} catch (error) {
