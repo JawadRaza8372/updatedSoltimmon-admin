@@ -12,11 +12,13 @@ import { uploadImageFun } from "../firebase/firebaseInit";
 import { useState } from "react";
 import LocationInput from "@components/LocationInput";
 import AddSpotForm from "@components/AddSpotForm";
+import Loader from "@components/Loader";
 const AddSpot = () => {
 	const dispatch = useDispatch();
 	const [csvSummary, setCsvSummary] = useState(null);
 	const [validRows, setValidRows] = useState([]);
 	const [invalidRows, setInvalidRows] = useState([]);
+	const [isLoading, setisLoading] = useState(false);
 	const [formData, setformData] = useState({
 		name: "",
 		address: "",
@@ -149,12 +151,12 @@ const AddSpot = () => {
 			return;
 		}
 		try {
+			setisLoading(true);
 			let uploadedGalleryUrls = [];
 			if (formData?.images?.length > 0) {
 				const uploadPromises = formData?.images?.map(async (img) => {
-					const result = `${img}`.startsWith("https://maps.googleapis.com/maps")
-						? img
-						: await uploadImageFun(img);
+					const result =
+						typeof img === "string" ? img : await uploadImageFun(img);
 					return result;
 				});
 				uploadedGalleryUrls = await Promise.all(uploadPromises);
@@ -208,6 +210,8 @@ const AddSpot = () => {
 		} catch (error) {
 			const formattedError = typeof error === "string" ? error : error?.message;
 			toast.error(formattedError);
+		} finally {
+			setisLoading(false);
 		}
 	};
 	const onIncomingDataFun = (data) => {
@@ -343,30 +347,34 @@ const AddSpot = () => {
 	return (
 		<>
 			<PageHeader title="Add Spot" />
-			<Spring className="card flex-1  mx-auto w-full xl:py-10">
-				{(formData?.coords?.lat === 0 && formData?.coords?.lng === 0) ||
-				formData?.coords?.address?.length > 0 ? (
-					<LocationInput
-						onSelectedValueFun={onIncomingDataFun}
-						handleCsvImport={handleCsvImport}
-						csvSummary={csvSummary}
-						importValidRows={importValidRows}
-						invalidRows={invalidRows}
-						resetFunction={() => {
-							setCsvSummary(null);
-							setInvalidRows([]);
-							setValidRows([]);
-						}}
-						validRows={validRows}
-					/>
-				) : (
-					<AddSpotForm
-						formData={formData}
-						setformData={setformData}
-						handlePublish={handlePublish}
-					/>
-				)}
-			</Spring>
+			{isLoading ? (
+				<Loader />
+			) : (
+				<Spring className="card flex-1  mx-auto w-full xl:py-10">
+					{(formData?.coords?.lat === 0 && formData?.coords?.lng === 0) ||
+					formData?.coords?.address?.length > 0 ? (
+						<LocationInput
+							onSelectedValueFun={onIncomingDataFun}
+							handleCsvImport={handleCsvImport}
+							csvSummary={csvSummary}
+							importValidRows={importValidRows}
+							invalidRows={invalidRows}
+							resetFunction={() => {
+								setCsvSummary(null);
+								setInvalidRows([]);
+								setValidRows([]);
+							}}
+							validRows={validRows}
+						/>
+					) : (
+						<AddSpotForm
+							formData={formData}
+							setformData={setformData}
+							handlePublish={handlePublish}
+						/>
+					)}
+				</Spring>
+			)}
 		</>
 	);
 };
