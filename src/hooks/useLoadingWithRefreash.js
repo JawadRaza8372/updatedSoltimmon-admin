@@ -1,14 +1,13 @@
-import { useState, useEffect, useRef, useCallback } from "react";
-import { useDispatch } from "react-redux";
+import { useState, useEffect, useCallback } from "react";
+import { useDispatch, useSelector } from "react-redux";
 import { toast } from "react-toastify";
 import {
-	fetchUserId,
-	isCheckLogin,
 	setContacts,
 	setSpots,
 	setWholeAdData,
 	setClientPaidSpots,
 	setClientSpots,
+	fetchUserId,
 } from "../store/reducer";
 import {
 	fetchAdminHighlightedSpots,
@@ -18,9 +17,10 @@ import {
 } from "../firebase/realtimeFn";
 import { getDataFromFirestore } from "../firebase/firestoreFn";
 export const useLoadingWithRefreash = () => {
+	const { isAuth } = useSelector((state) => state?.auth);
 	const [isLoading, setisLoading] = useState(true);
 	const dispatch = useDispatch();
-	const isCalled = useRef(false); // Prevent multiple calls
+
 	const fetchAllMarkers = useCallback(async () => {
 		const result = await fetchLocationSpots();
 		const highlightedResults = await fetchAdminHighlightedSpots();
@@ -32,12 +32,9 @@ export const useLoadingWithRefreash = () => {
 	}, [dispatch]);
 	const checklogin = useCallback(async () => {
 		try {
-			if (isCalled.current) return; // Prevent duplicate execution
-			isCalled.current = true;
 			const result = await fetchUserId();
-
-			if (result) {
-				dispatch(isCheckLogin({ isAuth: "loggedIn" }));
+			if (isAuth?.length > 0 || (result && result?.length > 0)) {
+				console.log("auth runed");
 				await getSpotFirebaseFn()
 					.then((response) => {
 						dispatch(
@@ -67,6 +64,7 @@ export const useLoadingWithRefreash = () => {
 
 				setisLoading(false);
 			} else {
+				console.log("unauth runed");
 				await fetchAllMarkers();
 				setisLoading(false);
 			}
@@ -74,10 +72,9 @@ export const useLoadingWithRefreash = () => {
 			toast.error(error);
 			setisLoading(false);
 		}
-	}, [dispatch, fetchAllMarkers]);
-
+	}, [dispatch, fetchAllMarkers, isAuth]);
 	useEffect(() => {
 		checklogin();
-	}, [checklogin]);
+	}, [checklogin, isAuth]);
 	return { isLoading };
 };

@@ -58,7 +58,7 @@ const App = () => {
 		const checkforAuth = async () => {
 			const result = await fetchUserId();
 			if (result) {
-				dispatch(isCheckLogin({ isAuth: "loggedIn" }));
+				dispatch(isCheckLogin({ isAuth: result }));
 			}
 		};
 
