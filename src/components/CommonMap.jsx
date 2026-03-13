@@ -166,9 +166,6 @@ function CommonMap({ locations }) {
 				}
 			});
 			updateSun(mapRef.current);
-			mapRef.current.on("moveend", () => {
-				updateSun(mapRef.current);
-			});
 		});
 
 		return () => {
@@ -238,7 +235,7 @@ function CommonMap({ locations }) {
 			});
 			markersRef.current.push(marker);
 		});
-	}, [locations, textStrings]);
+	}, [locations]);
 
 	useEffect(() => {
 		const map = mapRef?.current;
