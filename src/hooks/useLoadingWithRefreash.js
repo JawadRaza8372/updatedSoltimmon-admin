@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { toast } from "react-toastify";
 import {
@@ -20,7 +20,10 @@ export const useLoadingWithRefreash = () => {
 	const { isAuth } = useSelector((state) => state?.auth);
 	const [isLoading, setisLoading] = useState(true);
 	const dispatch = useDispatch();
-
+	const isCalled = useRef(false); // Prevent multiple calls
+	useEffect(() => {
+		isCalled.current = false; // 🔥 reset when auth changes
+	}, [isAuth]);
 	const fetchAllMarkers = useCallback(async () => {
 		const result = await fetchLocationSpots();
 		const highlightedResults = await fetchAdminHighlightedSpots();
@@ -32,6 +35,8 @@ export const useLoadingWithRefreash = () => {
 	}, [dispatch]);
 	const checklogin = useCallback(async () => {
 		try {
+			if (isCalled.current) return; // Prevent duplicate execution
+			isCalled.current = true;
 			const result = await fetchUserId();
 			if (isAuth?.length > 0 || (result && result?.length > 0)) {
 				console.log("auth runed");
