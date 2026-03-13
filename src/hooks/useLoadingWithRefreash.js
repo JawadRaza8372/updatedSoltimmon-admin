@@ -39,7 +39,6 @@ export const useLoadingWithRefreash = () => {
 			isCalled.current = true;
 			const result = await fetchUserId();
 			if (isAuth?.length > 0 || (result && result?.length > 0)) {
-				console.log("auth runed");
 				await getSpotFirebaseFn()
 					.then((response) => {
 						dispatch(
@@ -69,7 +68,6 @@ export const useLoadingWithRefreash = () => {
 
 				setisLoading(false);
 			} else {
-				console.log("unauth runed");
 				await fetchAllMarkers();
 				setisLoading(false);
 			}
