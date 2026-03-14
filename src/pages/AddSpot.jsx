@@ -261,7 +261,7 @@ const AddSpot = () => {
 						error = "Name must be at least 3 characters";
 					} else if (
 						row?.address?.length < 3 ||
-						(row?.lat === 0 && row?.lng === 0 && !row?.city)
+						(row?.lat === 0 && row?.lng === 0)
 					) {
 						error = "Invalid address";
 					} else if (row?.description?.length < 15) {
@@ -323,7 +323,7 @@ const AddSpot = () => {
 					description: row?.description ?? "",
 					lat: Number(row?.lat),
 					lng: Number(row?.lng),
-					city: row?.city,
+					city: row?.city ?? "",
 					openingHours: formattedOpeningHours,
 					phoneNumber: row?.phoneNumber,
 					externalWebsite: row?.externalWebsite ?? "",
