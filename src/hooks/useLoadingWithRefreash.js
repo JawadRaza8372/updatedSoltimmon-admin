@@ -1,5 +1,5 @@
-import { useState, useEffect, useRef, useCallback } from "react";
-import { useDispatch, useSelector } from "react-redux";
+import { useState, useEffect, useCallback } from "react";
+import { useDispatch } from "react-redux";
 import { toast } from "react-toastify";
 import {
 	setContacts,
@@ -7,7 +7,6 @@ import {
 	setWholeAdData,
 	setClientPaidSpots,
 	setClientSpots,
-	fetchUserId,
 } from "../store/reducer";
 import {
 	fetchAdminHighlightedSpots,
@@ -17,13 +16,9 @@ import {
 } from "../firebase/realtimeFn";
 import { getDataFromFirestore } from "../firebase/firestoreFn";
 export const useLoadingWithRefreash = () => {
-	const { isAuth } = useSelector((state) => state?.auth);
 	const [isLoading, setisLoading] = useState(true);
 	const dispatch = useDispatch();
-	const isCalled = useRef(false); // Prevent multiple calls
-	useEffect(() => {
-		isCalled.current = false; // 🔥 reset when auth changes
-	}, [isAuth]);
+
 	const fetchAllMarkers = useCallback(async () => {
 		const result = await fetchLocationSpots();
 		const highlightedResults = await fetchAdminHighlightedSpots();
@@ -35,49 +30,27 @@ export const useLoadingWithRefreash = () => {
 	}, [dispatch]);
 	const checklogin = useCallback(async () => {
 		try {
-			if (isCalled.current) return; // Prevent duplicate execution
-			isCalled.current = true;
-			const result = await fetchUserId();
-			if (isAuth?.length > 0 || (result && result?.length > 0)) {
-				await getSpotFirebaseFn()
-					.then((response) => {
-						dispatch(
-							setSpots({
-								spots: response,
-							}),
-						);
-					})
-					.catch((err) => {
-						toast.error(err);
-					});
-				await getAdImage()
-					.then((dat) => {
-						dispatch(setWholeAdData({ wholeAdData: dat }));
-					})
-					.catch((err) => {
-						toast.error(err);
-					});
-				await getDataFromFirestore("contactUs")
-					.then((dat) => {
-						dispatch(setContacts({ contacts: dat }));
-					})
-					.catch((err) => {
-						toast.error(err);
-					});
-				await fetchAllMarkers();
-
-				setisLoading(false);
-			} else {
-				await fetchAllMarkers();
-				setisLoading(false);
-			}
+			const [spots, adData, contacts] = await Promise.all([
+				getSpotFirebaseFn(),
+				getAdImage(),
+				getDataFromFirestore("contactUs"),
+			]);
+			dispatch(
+				setSpots({
+					spots: spots,
+				}),
+			);
+			dispatch(setWholeAdData({ wholeAdData: adData }));
+			dispatch(setContacts({ contacts: contacts }));
+			await fetchAllMarkers();
 		} catch (error) {
 			toast.error(error);
+		} finally {
 			setisLoading(false);
 		}
-	}, [dispatch, fetchAllMarkers, isAuth]);
+	}, [dispatch, fetchAllMarkers]);
 	useEffect(() => {
 		checklogin();
-	}, [checklogin, isAuth]);
+	}, [checklogin]);
 	return { isLoading };
 };
