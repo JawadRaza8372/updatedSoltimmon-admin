@@ -39,10 +39,12 @@ const SpotMobileItem = ({ data, activeCollapse, handleCollapse }) => {
 							<td>Name:</td>
 							<td>{data?.name ?? "--"}</td>
 						</tr>
-						<tr>
-							<td>Phone:</td>
-							<td>{data?.phoneNumber ?? "--"}</td>
-						</tr>
+						{data?.phoneNumber?.length > 0 && (
+							<tr>
+								<td>Phone:</td>
+								<td>{data?.phoneNumber ?? "--"}</td>
+							</tr>
+						)}
 						<tr>
 							<td>Opening Hours:</td>
 							<td>
@@ -53,28 +55,34 @@ const SpotMobileItem = ({ data, activeCollapse, handleCollapse }) => {
 							<td>Sun Hours:</td>
 							<td>{data?.sunHours?.length > 0 ? data?.sunHours : "--"}</td>
 						</tr>
-						<tr>
-							<td>City:</td>
-							<td>{data?.city?.length > 0 ? data?.city : "--"}</td>
-						</tr>
+						{data?.city?.length > 0 && (
+							<tr>
+								<td>City:</td>
+								<td>{data?.city?.length > 0 ? data?.city : "--"}</td>
+							</tr>
+						)}
 						<tr>
 							<td>Address:</td>
 							<td>{data?.address?.length > 0 ? data?.address : "--"}</td>
 						</tr>
-						<tr>
-							<td>Internal Note:</td>
-							<td>
-								{data?.internalNote?.length > 0 ? data?.internalNote : "--"}
-							</td>
-						</tr>
-						<tr>
-							<td>External Website:</td>
-							<td>
-								{data?.externalWebsite?.length > 0
-									? data?.externalWebsite
-									: "--"}
-							</td>
-						</tr>
+						{data?.internalNote?.length > 0 && (
+							<tr>
+								<td>Internal Note:</td>
+								<td>
+									{data?.internalNote?.length > 0 ? data?.internalNote : "--"}
+								</td>
+							</tr>
+						)}
+						{data?.externalWebsite?.length > 0 && (
+							<tr>
+								<td>External Website:</td>
+								<td>
+									{data?.externalWebsite?.length > 0
+										? data?.externalWebsite
+										: "--"}
+								</td>
+							</tr>
+						)}
 						<tr>
 							<td>Images:</td>
 							<td>

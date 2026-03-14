@@ -40,14 +40,19 @@ const SpotMobileItemAd = ({ data, activeCollapse, handleCollapse }) => {
 							<td>Name:</td>
 							<td>{data?.name ?? "--"}</td>
 						</tr>
-						<tr>
-							<td>Phone:</td>
-							<td>{data?.phoneNumber ?? "--"}</td>
-						</tr>
-						<tr>
-							<td>City:</td>
-							<td>{data?.city?.length > 0 ? data?.city : "--"}</td>
-						</tr>
+						{data?.phoneNumber?.length > 0 && (
+							<tr>
+								<td>Phone:</td>
+								<td>{data?.phoneNumber ?? "--"}</td>
+							</tr>
+						)}
+
+						{data?.city?.length > 0 && (
+							<tr>
+								<td>City:</td>
+								<td>{data?.city?.length > 0 ? data?.city : "--"}</td>
+							</tr>
+						)}
 						<tr>
 							<td>Address:</td>
 							<td>{data?.address?.length > 0 ? data?.address : "--"}</td>

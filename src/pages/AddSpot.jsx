@@ -118,9 +118,7 @@ const AddSpot = () => {
 		}
 		if (
 			formData?.address?.length < 3 ||
-			(formData?.coords?.lng === 0 &&
-				formData?.coords?.lng === 0 &&
-				formData?.city?.length <= 0)
+			(formData?.coords?.lng === 0 && formData?.coords?.lng === 0)
 		) {
 			toast.error("Please select a valid address.");
 			return;
