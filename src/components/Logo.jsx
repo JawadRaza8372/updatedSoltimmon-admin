@@ -11,7 +11,7 @@ const Logo = ({ size, textClass, showImage }) => {
 	return (
 		<NavLink
 			className="logo"
-			to="/spots">
+			to="/">
 			{showImage && (
 				<img
 					style={{
@@ -23,7 +23,7 @@ const Logo = ({ size, textClass, showImage }) => {
 					alt="media"
 				/>
 			)}
-			<h4 className={`logo_text ${textClass || ""}`}>Soltimman</h4>
+			<h4 className={`logo_text ${textClass || ""}`}>Solspringan</h4>
 		</NavLink>
 	);
 };
