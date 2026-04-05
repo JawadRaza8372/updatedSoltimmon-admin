@@ -112,57 +112,39 @@ function LocationInput({
 			setAddress(newAddress);
 			const results = await geocodeByAddress(newAddress);
 			const placeId = results[0]?.place_id;
-			// const placeRef = new window.google.maps.places.Place({
-			// 	id: placeId,
-			// });
-
-			// const check = await placeRef.fetchFields({
-			// 	fields: [
-			// 		"displayName",
-			// 		"formattedAddress",
-			// 		"location",
-			// 		"rating",
-			// 		"regularOpeningHours",
-			// 		"websiteURI",
-			// 		"nationalPhoneNumber",
-			// 		"internationalPhoneNumber",
-			// 		"photos",
-			// 	],
-			// });
-			// console.log("==================?", check);
-			const service = new window.google.maps.places.PlacesService(
-				document.createElement("div"),
-			);
-
-			const place = await new Promise((resolve, reject) => {
-				service.getDetails(
-					{
-						placeId,
-						fields: [
-							"name",
-							"opening_hours",
-							"website",
-							"formatted_phone_number",
-							"international_phone_number",
-							"photos",
-						],
-					},
-					(place, status) => {
-						if (status === window.google.maps.places.PlacesServiceStatus.OK) {
-							resolve(place);
-						} else {
-							reject(status);
-						}
-					},
-				);
+			const placeRef = new window.google.maps.places.Place({
+				id: placeId,
 			});
+
+			const check = await placeRef.fetchFields({
+				fields: [
+					"addressComponents",
+					"displayName",
+					"formattedAddress",
+					"location",
+					"postalAddress",
+					"rating",
+					"regularOpeningHours",
+					"websiteURI",
+					"nationalPhoneNumber",
+					"internationalPhoneNumber",
+					"photos",
+				],
+			});
+			const place = check?.place ?? placeRef;
 			const cityComp =
-				results[0]?.address_components?.find((comp) =>
+				place?.addressComponents?.find((comp) =>
 					comp?.types?.includes("locality"),
 				) ?? "";
-			const currentCity = cityComp?.long_name;
+			const currentCity =
+				place?.postalAddress?.locality ??
+				cityComp?.longText ??
+				results[0]?.address_components?.find((comp) =>
+					comp?.types?.includes("locality"),
+				)?.long_name ??
+				"";
 			const finalFormat = place?.photos
-				?.map((photo) => photo.getUrl({ maxWidth: 800 }))
+				?.map((photo) => photo?.getURI?.({ maxWidth: 800 }))
 				?.filter((dat) => dat?.length > 0);
 			const formaatedImageUrl =
 				finalFormat?.length > 0
@@ -171,22 +153,27 @@ function LocationInput({
 						: finalFormat
 					: [];
 			const finalData = {
-				address: results[0]?.formatted_address ?? "",
-				description: results[0]?.formatted_address ?? "",
+				address: place?.formattedAddress ?? results[0]?.formatted_address ?? "",
+				description:
+					place?.formattedAddress ?? results[0]?.formatted_address ?? "",
 				coords: {
-					lat: results[0]?.geometry?.location?.lat() ?? 0,
-					lng: results[0]?.geometry?.location?.lng() ?? 0,
+					lat:
+						place?.location?.lat?.() ??
+						results[0]?.geometry?.location?.lat() ??
+						0,
+					lng:
+						place?.location?.lng?.() ??
+						results[0]?.geometry?.location?.lng() ??
+						0,
 				},
-				name: place?.name ?? "",
+				name: place?.displayName ?? "",
 				openingHours:
 					getUnifiedOpeningHours(
-						place?.opening_hours?.weekday_text,
+						place?.regularOpeningHours?.weekdayDescriptions,
 					)?.toLowerCase() ?? "",
-				website: place?.website ?? "",
+				website: place?.websiteURI ?? "",
 				phone:
-					place?.formatted_phone_number ??
-					place?.international_phone_number ??
-					"",
+					place?.nationalPhoneNumber ?? place?.internationalPhoneNumber ?? "",
 				city: currentCity ?? "",
 				images: formaatedImageUrl ?? [],
 			};
