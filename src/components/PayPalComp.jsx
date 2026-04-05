@@ -60,7 +60,7 @@ export default function PayPalComp() {
 				<div className="inputMainContainer">
 					<PayPalScriptProvider
 						options={{
-							clientId: import.meta.env.VITE_PAYPAL_CLIENT_ID_DEV,
+							clientId: import.meta.env.VITE_PAYPAL_CLIENT_ID_PROD,
 							currency: "USD",
 							intent: "capture",
 							components: "buttons",
