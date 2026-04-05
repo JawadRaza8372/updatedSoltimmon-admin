@@ -30,6 +30,14 @@ const UpdateSpot = () => {
 		externalWebsite: "",
 		status: "pending",
 	});
+	const phoneRegex = /^[+]?[0-9\s\-()./]+$/;
+	const isValidOptionalPhoneNumber = (value) => {
+		const phoneValue = `${value ?? ""}`.trim();
+		if (!phoneValue) return true;
+		if (!phoneRegex.test(phoneValue)) return false;
+		const digitsOnly = phoneValue.replace(/\D/g, "");
+		return digitsOnly.length >= 7;
+	};
 	function formatOpeningHoursInput(input) {
 		if (!input) return "";
 
@@ -135,6 +143,9 @@ const UpdateSpot = () => {
 		const isValidExternalLink = urlRegex.test(
 			`${formData.externalWebsite}`?.toLowerCase(),
 		);
+		const isValidPhoneNumber = isValidOptionalPhoneNumber(
+			formData?.phoneNumbeer,
+		);
 		if (formData?.name?.length < 3) {
 			toast.error("Please enter a spot name with at least 3 characters.");
 			return;
@@ -152,8 +163,10 @@ const UpdateSpot = () => {
 			);
 			return;
 		}
-		if (formData?.phoneNumbeer?.length < 7) {
-			toast.error("Please enter a valid phone number.");
+		if (!isValidPhoneNumber) {
+			toast.error(
+				"Please enter a valid phone number using digits and phone characters only.",
+			);
 			return;
 		}
 

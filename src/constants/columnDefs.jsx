@@ -42,11 +42,11 @@ export const MARKERS_COLUMN_DEFS = [
 				<div className="flex flex-col gap-1 w-full max-w-[280px]">
 					<span className="">
 						<span className="font-bold text-header">Name:</span>{" "}
-						{data?.name ?? "--"}
+						{data?.name?.length > 0 ? data?.name : "--"}
 					</span>
 					<span className="truncate">
 						<span className="font-bold text-header">Phone:</span>{" "}
-						{data?.phoneNumber ?? "--"}
+						{data?.phoneNumber?.length > 0 ? data?.phoneNumber : "--"}
 					</span>
 					<span className="truncate">
 						<span className="font-bold text-header">Opening Hours:</span>{" "}
@@ -58,7 +58,7 @@ export const MARKERS_COLUMN_DEFS = [
 					</span>
 					<span className="truncate">
 						<span className="font-bold text-header">City:</span>{" "}
-						{data?.city ?? "--"}
+						{data?.city?.length > 0 ? data?.city : "--"}
 					</span>
 					<span className="">
 						<span className="font-bold text-header">Address:</span>{" "}
@@ -100,18 +100,6 @@ export const MARKERS_COLUMN_DEFS = [
 			);
 		},
 	},
-	// {
-	// 	title: "Description",
-	// 	dataIndex: "description",
-	// 	width: 150,
-	// 	render: (data) => {
-	// 		return (
-	// 			<div className="flex flex-col gap-1 w-full max-w-[350px]">
-	// 				<span className="">{data ?? "-"}</span>
-	// 			</div>
-	// 		);
-	// 	},
-	// },
 	{
 		title: "Source",
 		dataIndex: "source",
@@ -187,15 +175,15 @@ export const SPOT_MARKERS_COLUMN_DEFS = [
 				<div className="flex flex-col gap-1 w-full max-w-[280px]">
 					<span className="">
 						<span className="font-bold text-header">Name:</span>{" "}
-						{data?.name ?? "--"}
+						{data?.name?.length > 0 ? data?.name : "--"}
 					</span>
 					<span className="truncate">
 						<span className="font-bold text-header">Phone:</span>{" "}
-						{data?.phoneNumber ?? "--"}
+						{data?.phoneNumber?.length > 0 ? data?.phoneNumber : "--"}
 					</span>
 					<span className="truncate">
 						<span className="font-bold text-header">City:</span>{" "}
-						{data?.city ?? "--"}
+						{data?.city?.length > 0 ? data?.city : "--"}
 					</span>
 					<span className="">
 						<span className="font-bold text-header">Address:</span>{" "}

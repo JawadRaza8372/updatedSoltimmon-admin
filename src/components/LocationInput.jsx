@@ -116,7 +116,7 @@ function LocationInput({
 				id: placeId,
 			});
 
-			const check = await placeRef.fetchFields({
+			const { place } = await placeRef.fetchFields({
 				fields: [
 					"addressComponents",
 					"displayName",
@@ -131,14 +131,27 @@ function LocationInput({
 					"photos",
 				],
 			});
-			const place = check?.place ?? placeRef;
-			const cityComp =
-				place?.addressComponents?.find((comp) =>
-					comp?.types?.includes("locality"),
-				) ?? "";
+			const formattedPlace = {
+				name: place?.displayName ?? "",
+				address: place?.formattedAddress ?? "",
+				location: {
+					lat: place?.location?.lat?.() ?? 0,
+					lng: place?.location?.lng?.() ?? 0,
+				},
+				openingHours: place?.regularOpeningHours?.weekdayDescriptions ?? [],
+				website: place?.websiteURI ?? null,
+				phone:
+					place?.nationalPhoneNumber ?? place?.internationalPhoneNumber ?? null,
+				city:
+					place?.postalAddress?.locality ??
+					place?.addressComponents?.find((comp) =>
+						comp?.types?.includes("locality"),
+					)?.longText ??
+					"",
+				photosCount: place?.photos?.length ?? 0,
+			};
 			const currentCity =
-				place?.postalAddress?.locality ??
-				cityComp?.longText ??
+				formattedPlace?.city ??
 				results[0]?.address_components?.find((comp) =>
 					comp?.types?.includes("locality"),
 				)?.long_name ??
@@ -153,27 +166,25 @@ function LocationInput({
 						: finalFormat
 					: [];
 			const finalData = {
-				address: place?.formattedAddress ?? results[0]?.formatted_address ?? "",
+				address: formattedPlace?.address ?? results[0]?.formatted_address ?? "",
 				description:
-					place?.formattedAddress ?? results[0]?.formatted_address ?? "",
+					formattedPlace?.address ?? results[0]?.formatted_address ?? "",
 				coords: {
 					lat:
-						place?.location?.lat?.() ??
+						formattedPlace?.location?.lat ??
 						results[0]?.geometry?.location?.lat() ??
 						0,
 					lng:
-						place?.location?.lng?.() ??
+						formattedPlace?.location?.lng ??
 						results[0]?.geometry?.location?.lng() ??
 						0,
 				},
-				name: place?.displayName ?? "",
+				name: formattedPlace?.name ?? "",
 				openingHours:
-					getUnifiedOpeningHours(
-						place?.regularOpeningHours?.weekdayDescriptions,
-					)?.toLowerCase() ?? "",
-				website: place?.websiteURI ?? "",
-				phone:
-					place?.nationalPhoneNumber ?? place?.internationalPhoneNumber ?? "",
+					getUnifiedOpeningHours(formattedPlace?.openingHours)?.toLowerCase() ??
+					"",
+				website: formattedPlace?.website ?? "",
+				phone: formattedPlace?.phone ?? "",
 				city: currentCity ?? "",
 				images: formaatedImageUrl ?? [],
 			};
@@ -184,10 +195,7 @@ function LocationInput({
 		}
 	};
 	const onSubmitFun = async () => {
-		if (
-			selectedData?.name?.length <= 0 ||
-			selectedData?.openingHours?.length <= 0
-		) {
+		if (selectedData?.name?.length <= 0 || selectedData?.address?.length <= 0) {
 			return;
 		}
 		onSelectedValueFun?.(selectedData);
@@ -329,7 +337,7 @@ function LocationInput({
 					<button
 						disabled={
 							selectedData?.name?.length <= 0 ||
-							selectedData?.openingHours?.length <= 0
+							selectedData?.address?.length <= 0
 						}
 						onClick={onSubmitFun}
 						type="button"
