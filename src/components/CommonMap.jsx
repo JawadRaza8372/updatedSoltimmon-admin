@@ -202,7 +202,8 @@ function CommonMap({ locations }) {
 			img.style.objectFit = "contain"; // or cover if you want
 
 			markerEl.appendChild(img);
-			markerEl.addEventListener("click", () => {
+			markerEl.addEventListener("pointerdown", (e) => {
+				e.stopPropagation();
 				const screenWidth = window.innerWidth;
 
 				// adjust this value if needed
@@ -228,7 +229,8 @@ function CommonMap({ locations }) {
 				const closeBtn = popupEl.querySelector("#popup-close-btn");
 
 				if (closeBtn) {
-					closeBtn.addEventListener("click", () => {
+					closeBtn.addEventListener("pointerdown", (e) => {
+						e.stopPropagation();
 						popup.remove();
 					});
 				}
@@ -274,10 +276,16 @@ function CommonMap({ locations }) {
 					}}>
 					<div
 						onClick={() => {
-							if (typeof dateInputRef.current.showPicker === "function") {
-								dateInputRef.current?.showPicker(); // ✅ Android WebView / Chrome
-							} else {
-								dateInputRef.current?.focus(); // ✅ iOS WebView fallback
+							if (dateInputRef.current) {
+								if (typeof dateInputRef.current.showPicker === "function") {
+									try {
+										dateInputRef.current.showPicker();
+									} catch (e) {
+										dateInputRef.current.click();
+									}
+								} else {
+									dateInputRef.current.click();
+								}
 							}
 						}}
 						className="datepicker-wrapper-custom">
@@ -286,12 +294,6 @@ function CommonMap({ locations }) {
 							ref={dateInputRef}
 							className="datepicker"
 							type="date"
-							style={{
-								borderRadius: "10px",
-								borderColor: "black",
-								pointerEvents: "none", // wrapper handles interaction
-								opacity: 0, // hide but clickable
-							}}
 							value={selectedDate}
 							onChange={(e) => {
 								setSelectedDate(e.target.value);
