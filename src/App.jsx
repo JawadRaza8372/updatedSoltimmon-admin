@@ -43,14 +43,16 @@ const App = () => {
 		if (
 			path === "/client" ||
 			path === "/client/" ||
-			path === "/client/top-spots" ||
-			path === "/client/donation"
+			path === "/client/top-spots"
 		) {
 			document.documentElement.classList.add("transparentBg");
 			document.body.classList.add("mapBg");
+		} else if (path === "/client/donation") {
+			document.body.classList.add("mapBg2");
 		} else {
 			document.documentElement.classList.remove("transparentBg");
 			document.body.classList.remove("mapBg");
+			document.body.classList.remove("mapBg2");
 		}
 	}, [path]);
 	useEffect(() => {
