@@ -155,7 +155,7 @@ export const markersHtmlFun = (loc, textStrings) => {
             border: none;
             cursor: pointer;
             padding: 0;
-        "       onclick="sendToApp('${encodeURIComponent(JSON.stringify(loc))}')">
+        "       onclick='sendToApp(${JSON.stringify(loc?.id ?? "")})'>
             <span style="
                 font-size: 12px;
                 font-weight: 700;

@@ -67,16 +67,14 @@
 html {
 	background-color: #ffffff !important;
 }
+html.transparentBg {
+	background-color: transparent !important;
+}
 body.mapBg {
 	width: 100%;
 	height: 100vh !important;
 	height: 100dvh !important;
-	background: radial-gradient(
-		circle at bottom left,
-		#ffffff 0%,
-		#dbeeff 50%,
-		#c2e0ff 100%
-	) !important;
+	background: transparent !important;
 	touch-action: none !important;
 	overflow: hidden;
 	overscroll-behavior: none !important;

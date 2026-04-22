@@ -46,8 +46,10 @@ const App = () => {
 			path === "/client/top-spots" ||
 			path === "/client/donation"
 		) {
+			document.documentElement.classList.add("transparentBg");
 			document.body.classList.add("mapBg");
 		} else {
+			document.documentElement.classList.remove("transparentBg");
 			document.body.classList.remove("mapBg");
 		}
 	}, [path]);

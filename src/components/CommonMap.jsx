@@ -6,9 +6,77 @@ import { useSearchParams } from "react-router-dom";
 import jsonLang from "../assets/translation.json";
 import { markersHtmlFun } from "../firebase/useAbleFun";
 
-const MIN_ZOOM = 11;
+const MIN_ZOOM = 9;
 const MAX_ZOOM = 17;
+const APP_MESSAGE_TYPES = {
+	openPlaceDetails: "OPEN_PLACE_DETAILS",
+	requestDate: "REQUEST_DATE_PICKER",
+	requestUserLocation: "REQUEST_USER_LOCATION",
+	setDate: "SET_SELECTED_DATE",
+	showUserLocation: "SHOW_USER_LOCATION",
+};
+const formatDateForState = (date) => {
+	if (!(date instanceof Date) || Number.isNaN(date.getTime())) return null;
+
+	const year = date.getFullYear();
+	const month = String(date.getMonth() + 1).padStart(2, "0");
+	const day = String(date.getDate()).padStart(2, "0");
+
+	return `${year}-${month}-${day}`;
+};
+const normalizeDateValue = (value) => {
+	if (!value && value !== 0) return null;
+
+	if (value instanceof Date) {
+		return formatDateForState(value);
+	}
+
+	if (typeof value === "number") {
+		return formatDateForState(new Date(value));
+	}
+
+	if (typeof value !== "string") return null;
+
+	if (/^\d{4}-\d{2}-\d{2}$/.test(value)) {
+		return value;
+	}
+
+	const parsedDate = new Date(value);
+	return formatDateForState(parsedDate);
+};
+const normalizeIncomingMessage = (rawData) => {
+	if (!rawData) return null;
+	if (typeof rawData === "string") {
+		try {
+			return JSON.parse(rawData);
+		} catch {
+			return rawData;
+		}
+	}
+	return rawData;
+};
+const extractDateFromMessage = (payload) => {
+	if (!payload) return null;
+	const directDate = normalizeDateValue(payload);
+	if (directDate) return directDate;
+
+	const candidate =
+		payload?.data?.date ??
+		payload?.data?.value ??
+		payload?.data?.selectedDate ??
+		payload?.date ??
+		payload?.value ??
+		payload?.selectedDate;
+
+	return normalizeDateValue(candidate);
+};
 function CommonMap({ locations }) {
+	const floatingActionStyle = {
+		position: "absolute",
+		left: "20px",
+		zIndex: 1000,
+		width: "55px",
+	};
 	const getTodayDateString = () => {
 		const dateObj = new Date();
 		const month = ("0" + (dateObj.getMonth() + 1)).slice(-2);
@@ -22,8 +90,12 @@ function CommonMap({ locations }) {
 	const textStrings = currentLang === "en" ? jsonLang.en : jsonLang.sw;
 	const mapRef = useRef();
 	const markersRef = useRef([]);
+	const appMarkerRef = useRef(null);
+	const appMarkerPopupRef = useRef(null);
+	const pendingAppLocationRef = useRef(null);
+	const updateSunRef = useRef(null);
+	const setAppLocationMarkerRef = useRef(null);
 	const mapContainerRef = useRef();
-	const dateInputRef = useRef(null);
 
 	const getCurrentSeconds = () => {
 		const now = new Date();
@@ -37,7 +109,7 @@ function CommonMap({ locations }) {
 		const m = Math.floor((sec % 3600) / 60);
 		return { h, m };
 	};
-	const sendMessageToApp = (data) => {
+	const sendMessageToApp = useCallback((data) => {
 		try {
 			const formattedData =
 				typeof data !== "string" ? JSON.stringify(data) : data;
@@ -47,27 +119,144 @@ function CommonMap({ locations }) {
 		} catch (error) {
 			console.log("check", error);
 		}
-	};
+	}, []);
+	const showDatePicker = useCallback(() => {
+		sendMessageToApp({
+			type: APP_MESSAGE_TYPES.requestDate,
+			data: { selectedDate },
+		});
+	}, [selectedDate, sendMessageToApp]);
+	const setAppLocationMarker = useCallback(
+		(location) => {
+			const map = mapRef.current;
+			if (!location) return;
+
+			if (!map) {
+				pendingAppLocationRef.current = location;
+				return;
+			}
+
+			const lat = Number(location?.lat ?? location?.latitude);
+			const lng = Number(location?.lng ?? location?.longitude);
+			if (Number.isNaN(lat) || Number.isNaN(lng)) return;
+
+			pendingAppLocationRef.current = null;
+			appMarkerRef.current?.remove();
+			appMarkerPopupRef.current?.remove();
+
+			const markerEl = document.createElement("div");
+			markerEl.style.width = "40px";
+			markerEl.style.height = "40px";
+			markerEl.style.borderRadius = "50%";
+			markerEl.style.overflow = "hidden";
+			markerEl.style.boxShadow = "0 0 0 3px rgba(0, 111, 255, 0.2)";
+
+			const img = document.createElement("img");
+			img.src = "/new-marker-icon.png";
+			img.style.width = "100%";
+			img.style.height = "100%";
+			img.style.objectFit = "contain";
+			img.style.filter = "hue-rotate(170deg) saturate(1.5)";
+			markerEl.appendChild(img);
+
+			const popup = new mapboxgl.Popup({ anchor: "bottom" }).setHTML(
+				`<div style="font-size:12px;font-weight:600;">${textStrings.youCurrentLocation}</div>`,
+			);
+			const marker = new mapboxgl.Marker({ element: markerEl })
+				.setLngLat([lng, lat])
+				.setPopup(popup)
+				.addTo(map);
+
+			appMarkerRef.current = marker;
+			appMarkerPopupRef.current = popup;
+			marker.togglePopup();
+
+			map.flyTo({
+				center: [lng, lat],
+				zoom: Math.max(map.getZoom(), 14),
+				speed: 1.2,
+				curve: 1.4,
+				easing: (t) => t,
+			});
+		},
+		[textStrings.youCurrentLocation],
+	);
+	const requestUserLocation = useCallback(() => {
+		if (window.ReactNativeWebView) {
+			sendMessageToApp({
+				type: APP_MESSAGE_TYPES.requestUserLocation,
+			});
+			return;
+		}
+
+		if (!navigator.geolocation) return;
+
+		navigator.geolocation.getCurrentPosition((position) => {
+			setAppLocationMarker({
+				lat: position.coords.latitude,
+				lng: position.coords.longitude,
+			});
+		});
+	}, [sendMessageToApp, setAppLocationMarker]);
 	const formatTime = (sec) => {
 		const { h, m } = secondsToTime(sec);
 		return `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`;
 	};
 	useEffect(() => {
-		window.sendToApp = (data) => {
+		window.sendToApp = (locationId) => {
 			const payload = {
-				type: "OPEN_PLACE_DETAILS",
-				data,
+				type: APP_MESSAGE_TYPES.openPlaceDetails,
+				data: { id: locationId },
 			};
 
 			if (window.ReactNativeWebView) {
 				sendMessageToApp(payload);
 			}
 		};
+		window.setSelectedDateFromApp = (value) => {
+			const nextDate = extractDateFromMessage(value);
+			if (nextDate) {
+				setSelectedDate(nextDate);
+			}
+		};
+		window.showUserLocationFromApp = (location) => {
+			setAppLocationMarker(location);
+		};
+
+		const handleIncomingMessage = (event) => {
+			const payload = normalizeIncomingMessage(event?.data);
+			if (!payload) return;
+
+			const messageType = payload?.type;
+			const incomingDate = extractDateFromMessage(payload);
+			if (
+				incomingDate &&
+				(!messageType || messageType === APP_MESSAGE_TYPES.setDate)
+			) {
+				setSelectedDate(incomingDate);
+			}
+
+			if (messageType === APP_MESSAGE_TYPES.showUserLocation) {
+				const location =
+					payload?.data?.location ??
+					payload?.data ??
+					payload?.location ??
+					payload;
+				setAppLocationMarker(location);
+			}
+		};
+
+		window.addEventListener("message", handleIncomingMessage);
+		document.addEventListener("message", handleIncomingMessage);
 
 		return () => {
 			delete window.sendToApp;
+			delete window.setSelectedDateFromApp;
+			delete window.showUserLocationFromApp;
+			window.removeEventListener("message", handleIncomingMessage);
+			document.removeEventListener("message", handleIncomingMessage);
 		};
-	}, []);
+	}, [sendMessageToApp, setAppLocationMarker]);
 	const formatDateTime = (date) =>
 		`${String(date.getHours()).padStart(2, "0")}:${String(
 			date.getMinutes(),
@@ -115,7 +304,12 @@ function CommonMap({ locations }) {
 		},
 		[selectedDate, seconds],
 	);
-	// eslint-disable-next-line react-hooks/exhaustive-deps
+	useEffect(() => {
+		updateSunRef.current = updateSun;
+	}, [updateSun]);
+	useEffect(() => {
+		setAppLocationMarkerRef.current = setAppLocationMarker;
+	}, [setAppLocationMarker]);
 	useEffect(() => {
 		mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_ACCESS_TOKEN;
 		mapRef.current = new mapboxgl.Map({
@@ -165,10 +359,15 @@ function CommonMap({ locations }) {
 					mapRef.current.setZoom(MAX_ZOOM);
 				}
 			});
-			updateSun(mapRef.current);
+			if (pendingAppLocationRef.current) {
+				setAppLocationMarkerRef.current?.(pendingAppLocationRef.current);
+			}
+			updateSunRef.current?.(mapRef.current);
 		});
 
 		return () => {
+			appMarkerRef.current?.remove();
+			appMarkerPopupRef.current?.remove();
 			mapRef.current.remove();
 		};
 	}, []);
@@ -182,10 +381,10 @@ function CommonMap({ locations }) {
 	useEffect(() => {
 		const map = mapRef.current;
 		if (!map) return;
-		if (!map || locations?.length <= 0) return;
 
 		markersRef.current.forEach((m) => m.remove());
 		markersRef.current = [];
+		if (!locations?.length) return;
 		locations.forEach((loc) => {
 			const markerEl = document.createElement("div");
 			markerEl.style.width = "40px"; // set your desired size
@@ -237,7 +436,7 @@ function CommonMap({ locations }) {
 			});
 			markersRef.current.push(marker);
 		});
-	}, [locations]);
+	}, [locations, textStrings]);
 
 	useEffect(() => {
 		const map = mapRef?.current;
@@ -266,43 +465,29 @@ function CommonMap({ locations }) {
 	return (
 		<>
 			<div className="map-container-main">
-				<div
-					style={{
-						position: "absolute",
-						top: "30px",
-						left: "20px",
-						zIndex: 1000,
-						width: "55px",
-					}}>
+				<div style={{ ...floatingActionStyle, top: "30px" }}>
 					<div
 						onClick={() => {
-							if (dateInputRef.current) {
-								if (typeof dateInputRef.current.showPicker === "function") {
-									try {
-										dateInputRef.current.showPicker();
-									} catch (e) {
-										dateInputRef.current.click();
-									}
-								} else {
-									dateInputRef.current.click();
-								}
-							}
+							showDatePicker();
 						}}
 						className="datepicker-wrapper-custom">
-						<input
-							hidden={true}
-							ref={dateInputRef}
-							className="datepicker"
-							type="date"
-							value={selectedDate}
-							onChange={(e) => {
-								setSelectedDate(e.target.value);
-							}}
-						/>
 						<img
 							src="/calendar-icon.png"
 							className="calendar-icon"
 							alt="calendar"
+						/>
+					</div>
+				</div>
+				<div style={{ ...floatingActionStyle, bottom: "30px" }}>
+					<div
+						onClick={() => {
+							requestUserLocation();
+						}}
+						className="datepicker-wrapper-custom">
+						<img
+							src="/plan-icon.png"
+							className="calendar-icon"
+							alt="location"
 						/>
 					</div>
 				</div>
