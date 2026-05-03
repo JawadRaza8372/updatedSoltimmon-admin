@@ -4,7 +4,6 @@ import "mapbox-gl/dist/mapbox-gl.css";
 import SunCalc from "suncalc";
 import { useSearchParams } from "react-router-dom";
 import jsonLang from "../assets/translation.json";
-import { markersHtmlFun } from "../firebase/useAbleFun";
 
 const MIN_ZOOM = 9;
 const MAX_ZOOM = 17;
@@ -14,6 +13,7 @@ const APP_MESSAGE_TYPES = {
 	requestUserLocation: "REQUEST_USER_LOCATION",
 	setDate: "SET_SELECTED_DATE",
 	showUserLocation: "SHOW_USER_LOCATION",
+	openCurrentLocationDetails: "OPEN_CURRENT_LOCATION_DETAILS",
 };
 const formatDateForState = (date) => {
 	if (!(date instanceof Date) || Number.isNaN(date.getTime())) return null;
@@ -96,6 +96,7 @@ function CommonMap({ locations }) {
 	const updateSunRef = useRef(null);
 	const setAppLocationMarkerRef = useRef(null);
 	const mapContainerRef = useRef();
+	const mapOverlayRef = useRef();
 
 	const getCurrentSeconds = () => {
 		const now = new Date();
@@ -159,17 +160,20 @@ function CommonMap({ locations }) {
 			img.style.filter = "hue-rotate(170deg) saturate(1.5)";
 			markerEl.appendChild(img);
 
-			const popup = new mapboxgl.Popup({ anchor: "bottom" }).setHTML(
-				`<div style="font-size:12px;font-weight:600;">${textStrings.youCurrentLocation}</div>`,
-			);
+			markerEl.addEventListener("pointerdown", (e) => {
+				e.stopPropagation();
+				if (window.ReactNativeWebView) {
+					sendMessageToApp({
+						type: APP_MESSAGE_TYPES.openCurrentLocationDetails,
+					});
+				}
+			});
+
 			const marker = new mapboxgl.Marker({ element: markerEl })
 				.setLngLat([lng, lat])
-				.setPopup(popup)
 				.addTo(map);
 
 			appMarkerRef.current = marker;
-			appMarkerPopupRef.current = popup;
-			marker.togglePopup();
 
 			map.flyTo({
 				center: [lng, lat],
@@ -179,7 +183,7 @@ function CommonMap({ locations }) {
 				easing: (t) => t,
 			});
 		},
-		[textStrings.youCurrentLocation],
+		[textStrings],
 	);
 	const requestUserLocation = useCallback(() => {
 		if (window.ReactNativeWebView) {
@@ -287,9 +291,10 @@ function CommonMap({ locations }) {
 				brightness = 100;
 			}
 
-			// // 🔥 Apply CSS brightness like your Leaflet code
-			if (mapContainerRef.current) {
-				mapContainerRef.current.style.filter = `brightness(${brightness}%)`;
+			// // 🔥 Apply overlay opacity to fix iOS webgl brightness filter issue
+			if (mapOverlayRef.current) {
+				const opacity = 1 - brightness / 100;
+				mapOverlayRef.current.style.backgroundColor = `rgba(0, 0, 0, ${opacity})`;
 			}
 
 			// optional: keep light realistic for buildings
@@ -320,6 +325,9 @@ function CommonMap({ locations }) {
 			maxZoom: 17,
 			minZoom: 11,
 			zoom: 15,
+			dragPitch: false,
+			pitchWithRotate: false,
+			pitch: 0,
 		});
 		mapRef.current.on("load", () => {
 			// Add 3D buildings (same as your HTML)
@@ -415,25 +423,15 @@ function CommonMap({ locations }) {
 					curve: 1.4,
 					easing: (t) => t,
 				});
-			});
-			const popup = new mapboxgl.Popup({ anchor: "bottom" }).setHTML(
-				markersHtmlFun(loc, textStrings),
-			);
-			const marker = new mapboxgl.Marker({ element: markerEl })
-				.setLngLat([loc.lng, loc.lat])
-				.setPopup(popup)
-				.addTo(mapRef.current); // force above
-			popup.on("open", () => {
-				const popupEl = popup.getElement(); // get THIS popup element only
-				const closeBtn = popupEl.querySelector("#popup-close-btn");
 
-				if (closeBtn) {
-					closeBtn.addEventListener("pointerdown", (e) => {
-						e.stopPropagation();
-						popup.remove();
-					});
+				if (window.sendToApp) {
+					window.sendToApp(loc.id);
 				}
 			});
+			const marker = new mapboxgl.Marker({ element: markerEl })
+				.setLngLat([loc.lng, loc.lat])
+				.addTo(mapRef.current); // force above
+
 			markersRef.current.push(marker);
 		});
 	}, [locations, textStrings]);
@@ -496,13 +494,27 @@ function CommonMap({ locations }) {
 					id="map-container"
 					ref={mapContainerRef}
 				/>
+				<div
+					ref={mapOverlayRef}
+					style={{
+						position: "absolute",
+						top: 0,
+						left: 0,
+						width: "100%",
+						height: "100%",
+						backgroundColor: "rgba(0,0,0,0)",
+						pointerEvents: "none",
+						zIndex: 10,
+						transition: "background-color 0.3s ease",
+					}}
+				/>
 				<img
 					id="zoom-message"
 					src="/ZoomMessage2.png"
 					alt="Zoom in"
 					style={{
 						position: "absolute",
-						top: "40%",
+						top: "48%",
 						left: "50%",
 						right: "50%",
 						transform: "translate(-50%, -50%)",
@@ -511,7 +523,7 @@ function CommonMap({ locations }) {
 						pointerEvents: "none",
 						objectFit: "contain",
 						width: "90%",
-						maxWidth: "420px",
+						maxWidth: "220px",
 						opacity: 0.6,
 					}}
 				/>

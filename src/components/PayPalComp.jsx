@@ -33,7 +33,7 @@ export default function PayPalComp() {
 			/>
 			<img
 				className="logo"
-				src="logo.png"
+				src="/logo.png"
 				alt="logo"
 			/>
 			<div className="textContainer">
